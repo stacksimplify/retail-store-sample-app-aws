@@ -19,18 +19,22 @@
 import { Controller, Get } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
+import { ChaosHealthIndicator } from './chaos/chaos.health';
 
 @Controller()
 export class AppController {
   constructor(
     private healthCheckService: HealthCheckService,
+    private chaosHealthIndicator: ChaosHealthIndicator,
     private configService: ConfigService,
   ) {}
 
   @Get('health')
   @HealthCheck()
   health() {
-    return this.healthCheckService.check([]);
+    return this.healthCheckService.check([
+      () => this.chaosHealthIndicator.isHealthy(),
+    ]);
   }
 
   @Get('topology')

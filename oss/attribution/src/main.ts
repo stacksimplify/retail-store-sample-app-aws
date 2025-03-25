@@ -1,8 +1,7 @@
 import * as fs from "fs-extra";
 import * as path from "path";
-import * as url from "url";
 import axios from "axios";
-import { promisify } from "util";
+import Handlebars from "handlebars";
 
 // Regular expressions for finding license files
 const licenseRegex = /^(LICENSE|LICENCE)($|\.md|\.txt)/i;
@@ -92,6 +91,7 @@ The applicable license information is listed below:
 
 {{{license}}}
 {{#if source_url}}
+
 [Source code]({{source_url}})
 {{/if}}
 
@@ -213,46 +213,11 @@ async function main() {
 
   console.log(`Writing results to ${outputFile}`);
 
-  // Generate Markdown from template
-  const output = template.replace(
-    /{{#each packages}}([\s\S]*?){{\/each}}/g,
-    (_match, block) => {
-      return packages
-        .map((pkg) => {
-          let result = block
-            .replace(/{{name}}/g, pkg.name)
-            .replace(/{{version}}/g, pkg.version)
-            .replace(/{{{license}}}/g, pkg.license);
+  const compiledTemplate = Handlebars.compile(template);
 
-          if (pkg.url) {
-            result = result
-              .replace(/{{#if url}}(.*?){{\/if}}/g, "$1")
-              .replace(/{{url}}/g, pkg.url);
-          } else {
-            result = result.replace(/{{#if url}}(.*?){{\/if}}/g, "");
-          }
+  const output = compiledTemplate({ packages });
 
-          if (pkg.source_url) {
-            result = result
-              .replace(/{{#if source_url}}([\s\S]*?){{\/if}}/g, "$1")
-              .replace(/{{source_url}}/g, pkg.source_url);
-          } else {
-            result = result.replace(/{{#if source_url}}[\s\S]*?{{\/if}}/g, "");
-          }
-
-          return result;
-        })
-        .join("");
-    },
-  );
-
-  // Final output replacements
-  const finalOutput = output.replace(
-    /{{#each packages}}[\s\S]*?{{\/each}}/g,
-    "",
-  );
-
-  fs.writeFileSync(outputFile, finalOutput);
+  fs.writeFileSync(outputFile, output);
   console.log("Finished!");
 }
 

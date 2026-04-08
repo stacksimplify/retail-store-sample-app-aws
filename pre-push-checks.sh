@@ -5,6 +5,7 @@
 # Guardrail script — runs before every push via hooks/pre-push
 # Enforces branch rules, cleanliness checks, runtime versions,
 # and lint/test validation. Fails fast if any condition is not met.
+# Added Permissions: chmod +x pre-push-checks.sh
 # ═══════════════════════════════════════════════════════════════
 
 # ─── Colours ────────────────────────────────────────────────────
